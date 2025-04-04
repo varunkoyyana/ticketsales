@@ -43,18 +43,29 @@
       5: 60,
       10: 30,
       20: 20,
+      25: 20,
       30: 20
     };
+
+    const defaultPrices = [
+      2, 2, 2, 2, 1, 2, 3, 3, 3, 2,
+      2, 2, 5, 2, 5, 3, 5, 2, 5, 5,
+      5, 5, 5, 2, 5, 10, 10, 10, 10, 5,
+      10, 10, 10, 10, 10, 5, 10, 10, 10, 10,
+      5, 5, 0, 20, 20, 20, 20, 20, 20, 30,
+      30, 20, 25, 30, 20, 30, 30, 20, 25, 30
+    ];
 
     const tableBody = document.getElementById('tableBody');
 
     for (let i = 1; i <= 60; i++) {
       const row = document.createElement('tr');
+      const defaultPrice = defaultPrices[i - 1] || 0;
 
       row.innerHTML = `
         <td>${i}</td>
-        <td><input type="number" min="1" class="price" onchange="calculate(${i})"></td>
-        <td><input type="number" min="0" class="opening"></td>
+        <td><input type="number" min="1" class="price" value="${defaultPrice}" onchange="calculate(${i})"></td>
+        <td><input type="number" min="0" class="opening" onchange="calculate(${i})"></td>
         <td><input type="number" min="0" class="closing" onchange="calculate(${i})"></td>
         <td><input type="number" min="0" class="extras" onchange="calculate(${i})"></td>
         <td class="total">0</td>
@@ -71,16 +82,30 @@
       const extras = parseInt(row.querySelector('.extras').value) || 0;
       const limit = ticketLimits[price] || 0;
 
-      let sold;
+      let sold = 0;
 
-      if (close <= open) {
-        sold = (limit - open) + close;
-      } else {
+      if (price === 0 || limit === 0) {
+        row.querySelector('.total').textContent = '0';
+        updateGrandTotal();
+        return;
+      }
+
+      if (extras === 0 && close < open) {
+        // Invalid scenario: can't have closing < opening without extra booklets
+        row.querySelector('.total').textContent = '0';
+        updateGrandTotal();
+        return;
+      }
+
+      if (close >= open) {
         sold = close - open;
+      } else {
+        sold = (limit - open) + close;
       }
 
       sold += (extras * limit);
-      const total = sold * price;
+
+      const total = sold > 0 ? sold * price : 0;
       row.querySelector('.total').textContent = total.toFixed(2);
       updateGrandTotal();
     }
