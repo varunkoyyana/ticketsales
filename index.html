@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lottery Sales Tracker</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    table { border-collapse: collapse; width: 100%; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+    th { background-color: #f2f2f2; }
+    input[type='number'] { width: 60px; }
+    .total-row { font-weight: bold; background-color: #e8f5e9; }
+  </style>
+</head>
+<body>
+  <h1>Lottery Daily Sales - Tracker</h1>
+  <table id="salesTable">
+    <thead>
+      <tr>
+        <th>Box #</th>
+        <th>Ticket Price ($)</th>
+        <th>Opening Count</th>
+        <th>Closing Count</th>
+        <th>Extras (Booklets)</th>
+        <th>Total Sale ($)</th>
+      </tr>
+    </thead>
+    <tbody id="tableBody"></tbody>
+    <tfoot>
+      <tr class="total-row">
+        <td colspan="5">Total Lottery Sale ($)</td>
+        <td id="grandTotal">0</td>
+      </tr>
+    </tfoot>
+  </table>
+
+  <script>
+    const ticketLimits = {
+      1: 200,
+      2: 150,
+      3: 100,
+      5: 60,
+      10: 30,
+      20: 20,
+      30: 20
+    };
+
+    const tableBody = document.getElementById('tableBody');
+
+    for (let i = 1; i <= 60; i++) {
+      const row = document.createElement('tr');
+
+      row.innerHTML = `
+        <td>${i}</td>
+        <td><input type="number" min="1" class="price" onchange="calculate(${i})"></td>
+        <td><input type="number" min="0" class="opening"></td>
+        <td><input type="number" min="0" class="closing" onchange="calculate(${i})"></td>
+        <td><input type="number" min="0" class="extras" onchange="calculate(${i})"></td>
+        <td class="total">0</td>
+      `;
+
+      tableBody.appendChild(row);
+    }
+
+    function calculate(rowNum) {
+      const row = tableBody.children[rowNum - 1];
+      const price = parseFloat(row.querySelector('.price').value) || 0;
+      const open = parseInt(row.querySelector('.opening').value) || 0;
+      const close = parseInt(row.querySelector('.closing').value) || 0;
+      const extras = parseInt(row.querySelector('.extras').value) || 0;
+      const limit = ticketLimits[price] || 0;
+
+      let sold;
+
+      if (close <= open) {
+        sold = (limit - open) + close;
+      } else {
+        sold = close - open;
+      }
+
+      sold += (extras * limit);
+      const total = sold * price;
+      row.querySelector('.total').textContent = total.toFixed(2);
+      updateGrandTotal();
+    }
+
+    function updateGrandTotal() {
+      const totals = document.querySelectorAll('.total');
+      let grandTotal = 0;
+      totals.forEach(td => {
+        grandTotal += parseFloat(td.textContent) || 0;
+      });
+      document.getElementById('grandTotal').textContent = grandTotal.toFixed(2);
+    }
+  </script>
+</body>
+</html>
